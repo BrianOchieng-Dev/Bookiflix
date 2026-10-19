@@ -196,7 +196,6 @@ export const BookDetailPage: React.FC = () => {
                       >
                         {fmt === 'Audiobook' && <Headphones className="w-3.5 h-3.5" />}
                         {fmt === 'eBook' && <BookOpen className="w-3.5 h-3.5" />}
-                        {fmt === 'Hardcover' && <Layers className="w-3.5 h-3.5" />}
                         <span>{fmt}</span>
                       </button>
                     );

@@ -204,7 +204,7 @@ export const FilterBar: React.FC = () => {
                 Format
               </label>
               <div className="flex flex-wrap gap-1">
-                {(['eBook', 'Audiobook', 'Hardcover'] as BookFormat[]).map((fmt) => {
+                {(['eBook', 'Audiobook'] as BookFormat[]).map((fmt) => {
                   const isSelected = formatFilter === fmt;
                   return (
                     <button

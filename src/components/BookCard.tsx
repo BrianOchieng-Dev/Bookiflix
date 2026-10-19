@@ -14,9 +14,16 @@ import { useStore } from '../context/StoreContext';
 interface BookCardProps {
   book: Book;
   rank?: number;
+  isGrid?: boolean;
+  className?: string;
 }
 
-export const BookCard: React.FC<BookCardProps> = ({ book, rank }) => {
+export const BookCard: React.FC<BookCardProps> = ({ 
+  book, 
+  rank,
+  isGrid = false,
+  className = ''
+}) => {
   const { 
     setSelectedBook, 
     setReadingBook, 
@@ -44,7 +51,11 @@ export const BookCard: React.FC<BookCardProps> = ({ book, rank }) => {
 
   return (
     <div 
-      className="group relative flex-none w-[150px] sm:w-[165px] md:w-[180px] select-none transition-all duration-200"
+      className={`group relative select-none transition-all duration-200 ${
+        isGrid 
+          ? 'w-full' 
+          : 'flex-none w-[138px] sm:w-[150px] md:w-[164px]'
+      } ${className}`}
       tabIndex={0}
       onKeyDown={handleKeyDown}
       role="article"

@@ -4,7 +4,7 @@ export type BookCategory =
   | 'Academic & Professional'
   | 'Wellness & Personal Growth';
 
-export type BookFormat = 'eBook' | 'Audiobook' | 'Hardcover';
+export type BookFormat = 'eBook' | 'Audiobook';
 
 export interface Chapter {
   chapterNumber: number;

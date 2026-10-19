@@ -271,22 +271,22 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </button>
 
-          {/* Dedicated Shopping Cart Button (Always with ShoppingCart Icon) */}
+          {/* Dedicated Shopping Cart Button (Always with Modern ShoppingCart Icon) */}
           <button
             onClick={() => setIsCartOpen(true)}
-            aria-label={`Shopping cart with ${cartItemsCount} items`}
-            className="relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-slate-100 hover:bg-[#1e90ff] text-slate-700 hover:text-white border border-slate-200 hover:border-[#1e90ff] transition-all cursor-pointer group"
+            aria-label={`Shopping Cart with ${cartItemsCount} items`}
+            className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#1e90ff]/10 hover:bg-[#1e90ff] text-[#1e90ff] hover:text-white border border-[#1e90ff]/30 hover:border-[#1e90ff] transition-all cursor-pointer group shadow-xs"
             title="Shopping Cart"
           >
             <div className="relative flex items-center justify-center">
-              <ShoppingCart className="w-4 h-4 transition-transform group-hover:scale-105" />
+              <ShoppingCart className="w-4 h-4 transition-transform group-hover:scale-110" />
               {cartItemsCount > 0 && (
-                <span className="absolute -top-2 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#1e90ff] group-hover:bg-white group-hover:text-[#1e90ff] text-white text-[10px] font-black flex items-center justify-center shadow-xs">
+                <span className="absolute -top-2.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#e50914] text-white text-[10px] font-black flex items-center justify-center shadow-xs">
                   {cartItemsCount}
                 </span>
               )}
             </div>
-            <span className="hidden md:inline text-xs font-bold pl-1">
+            <span className="text-xs font-bold pl-0.5">
               Cart
             </span>
           </button>

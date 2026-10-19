@@ -80,7 +80,7 @@ export const NetflixRow: React.FC<NetflixRowProps> = ({
         <div
           ref={rowRef}
           onScroll={checkScroll}
-          className="flex items-stretch gap-2.5 sm:gap-3 overflow-x-auto no-scrollbar px-4 sm:px-6 md:px-8 py-2 scroll-smooth"
+          className="flex items-stretch gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar px-4 sm:px-6 md:px-8 py-2 scroll-smooth"
         >
           {books.map((book) => (
             <BookCard key={book.id} book={book} />

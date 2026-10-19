@@ -26,11 +26,13 @@ import { useStore } from '../context/StoreContext';
 interface UserProfilePageProps {
   onBackToHome: () => void;
   onOpenCheckout: () => void;
+  initialTab?: 'library' | 'wishlist' | 'orders' | 'settings';
 }
 
 export const UserProfilePage: React.FC<UserProfilePageProps> = ({
   onBackToHome,
-  onOpenCheckout
+  onOpenCheckout,
+  initialTab = 'library'
 }) => {
   const { user, signInWithGoogle, signOutUser } = useAuth();
   const { 
@@ -48,7 +50,13 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({
     removeFromCart
   } = useStore();
 
-  const [activeTab, setActiveTab] = useState<'library' | 'wishlist' | 'orders' | 'settings'>('library');
+  const [activeTab, setActiveTab] = useState<'library' | 'wishlist' | 'orders' | 'settings'>(initialTab);
+
+  React.useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
 
   const displayName = user?.displayName || 'Achieng (Curator & Reader)';
   const displayEmail = user?.email || 'bochieng228@gmail.com';

@@ -72,7 +72,7 @@ export const Top10Row: React.FC<Top10RowProps> = ({ books }) => {
         <div
           ref={rowRef}
           onScroll={checkScroll}
-          className="flex items-center gap-4 sm:gap-6 overflow-x-auto no-scrollbar px-4 sm:px-6 md:px-8 py-3 scroll-smooth"
+          className="flex items-center gap-2 sm:gap-3 overflow-x-auto no-scrollbar px-4 sm:px-6 md:px-8 py-3 scroll-smooth"
         >
           {top10.map((book, index) => {
             const rank = index + 1;
