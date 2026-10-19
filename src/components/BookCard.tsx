@@ -1,0 +1,189 @@
+import React from 'react';
+import { 
+  Heart, 
+  ShoppingCart, 
+  BookOpen, 
+  Star, 
+  Headphones, 
+  Zap, 
+  Percent 
+} from 'lucide-react';
+import { Book } from '../types/book';
+import { useStore } from '../context/StoreContext';
+
+interface BookCardProps {
+  book: Book;
+  rank?: number;
+}
+
+export const BookCard: React.FC<BookCardProps> = ({ book, rank }) => {
+  const { 
+    setSelectedBook, 
+    setReadingBook, 
+    toggleWishlist, 
+    isInWishlist, 
+    addToCart, 
+    setIsCheckoutOpen,
+    formatPrice 
+  } = useStore();
+
+  const isFavorited = isInWishlist(book.id);
+
+  const handleInstantMpesaBuy = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    await addToCart(book, 'eBook', 1);
+    setIsCheckoutOpen(true);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setSelectedBook(book);
+    }
+  };
+
+  return (
+    <div 
+      className="group relative flex-none w-[190px] sm:w-[210px] md:w-[225px] select-none transition-all duration-200"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      role="article"
+      aria-label={`${book.title} by ${book.author}, ${formatPrice(book.priceKes)}`}
+    >
+      {/* Neutral Radius Glass Card Body (White theme) */}
+      <div 
+        onClick={() => setSelectedBook(book)}
+        className="cursor-pointer bg-white rounded-md border border-slate-200 hover:border-[#1e90ff] shadow-xs hover:shadow-lg transition-all duration-200 overflow-hidden relative flex flex-col h-full group-hover:-translate-y-1 focus-within:ring-2 focus-within:ring-[#1e90ff]"
+      >
+        {/* Cover Image Container */}
+        <div className="relative aspect-[2/3] w-full overflow-hidden bg-slate-100">
+          <img 
+            src={book.coverUrl} 
+            alt={`Cover of ${book.title}`}
+            className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-105"
+            loading="lazy"
+          />
+
+          {/* Top Badges (Red for Discount, Dodgerblue for Category/Midusa Choice) */}
+          <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
+            {book.discountPercent && book.discountPercent > 0 && (
+              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-xs text-[11px] font-black bg-[#e50914] text-white shadow-xs">
+                <Percent className="w-2.5 h-2.5" />
+                {book.discountPercent}% OFF
+              </span>
+            )}
+            {book.badge && (
+              <span className="px-2 py-0.5 rounded-xs text-[10px] font-bold bg-[#1e90ff] text-white shadow-xs">
+                {book.badge}
+              </span>
+            )}
+          </div>
+
+          {/* Quick Format Badges */}
+          <div className="absolute bottom-2 left-2 flex items-center gap-1 z-10">
+            {book.formats.includes('eBook') && (
+              <span className="px-1.5 py-0.5 rounded-xs bg-black/75 backdrop-blur-md text-[10px] font-semibold text-white border border-white/10 flex items-center gap-1">
+                <BookOpen className="w-3 h-3 text-[#1e90ff]" />
+                <span>eBook</span>
+              </span>
+            )}
+            {book.formats.includes('Audiobook') && (
+              <span className="p-1 rounded-xs bg-black/75 backdrop-blur-md text-[#1e90ff] border border-white/10" title="Audiobook format">
+                <Headphones className="w-3 h-3" />
+              </span>
+            )}
+          </div>
+
+          {/* Top Right Quick Actions (Accessible) */}
+          <div className="absolute top-2 right-2 flex flex-col gap-1.5 z-20 opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleWishlist(book);
+              }}
+              aria-label={isFavorited ? `Remove ${book.title} from wishlist` : `Add ${book.title} to wishlist`}
+              className={`p-1.5 rounded-xs backdrop-blur-md transition-all cursor-pointer ${
+                isFavorited 
+                  ? 'bg-[#e50914] text-white shadow-sm' 
+                  : 'bg-black/70 hover:bg-black text-white hover:text-[#e50914] border border-white/15'
+              }`}
+            >
+              <Heart className={`w-3.5 h-3.5 ${isFavorited ? 'fill-current' : ''}`} />
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setReadingBook(book);
+              }}
+              aria-label={`Read sample of ${book.title}`}
+              className="p-1.5 rounded-xs bg-black/70 hover:bg-white hover:text-black text-white backdrop-blur-md transition-all cursor-pointer border border-white/15"
+              title="Preview sample"
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Card Body with accessible typography on white background */}
+        <div className="p-3 flex flex-col flex-1 justify-between gap-2.5 bg-white">
+          <div>
+            <div className="text-[10px] font-bold text-[#1e90ff] uppercase tracking-wider line-clamp-1">
+              {book.subcategory}
+            </div>
+            <h3 className="font-bold text-xs sm:text-sm text-slate-900 line-clamp-1 group-hover:text-[#1e90ff] transition-colors mt-0.5">
+              {book.title}
+            </h3>
+            <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5 font-medium">
+              {book.author}
+            </p>
+          </div>
+
+          {/* Rating & Price */}
+          <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-1 text-xs">
+              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
+              <span className="font-bold text-slate-800">{book.rating}</span>
+              <span className="text-[10px] text-slate-400">({book.reviewsCount})</span>
+            </div>
+
+            <div className="text-right">
+              {book.originalPriceKes && (
+                <div className="text-[10px] text-slate-400 line-through">
+                  {formatPrice(book.originalPriceKes)}
+                </div>
+              )}
+              <div className="text-xs sm:text-sm font-black text-slate-900">
+                {formatPrice(book.priceKes)}
+              </div>
+            </div>
+          </div>
+
+          {/* High Accessibility Purchase Button: Direct 1-Click Buy with M-Pesa Green */}
+          <div className="flex items-center gap-1.5 pt-0.5">
+            <button
+              onClick={handleInstantMpesaBuy}
+              aria-label={`Quick buy ${book.title} with M-Pesa`}
+              className="flex-1 py-1.5 px-2 rounded-md bg-[#00a859] hover:bg-[#00924d] text-white font-bold text-[11px] flex items-center justify-center gap-1 shadow-xs transition-transform active:scale-95 cursor-pointer"
+            >
+              <Zap className="w-3 h-3 fill-current" />
+              <span>Buy M-Pesa</span>
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                addToCart(book, 'eBook', 1);
+              }}
+              aria-label={`Add ${book.title} to cart`}
+              className="p-1.5 rounded-md bg-slate-100 hover:bg-[#1e90ff] text-slate-700 hover:text-white transition-colors cursor-pointer border border-slate-200"
+              title="Add to cart"
+            >
+              <ShoppingCart className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
