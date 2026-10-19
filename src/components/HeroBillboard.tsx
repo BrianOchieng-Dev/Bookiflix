@@ -69,15 +69,6 @@ export const HeroBillboard: React.FC = () => {
       {/* Main Billboard Content Container */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-8 md:px-12 flex items-center justify-between">
         <div className="max-w-2xl pt-8 sm:pt-12">
-          {/* Netflix-Style Series Monogram Ribbon */}
-          <div className="flex items-center gap-2 mb-2.5">
-            <span className="w-5 h-6 rounded-xs bg-[#e50914] text-white font-black text-sm flex items-center justify-center tracking-tighter shadow-md">
-              M
-            </span>
-            <span className="text-[11px] sm:text-xs font-black tracking-[0.25em] uppercase text-white/90">
-              M I D U S A &nbsp;O R I G I N A L
-            </span>
-          </div>
 
           {/* Netflix #1 in Books Today Badge */}
           <div className="flex items-center gap-2.5 mb-3">

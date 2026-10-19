@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { StoreProvider, useStore } from './context/StoreContext';
 import { Navbar } from './components/Navbar';
@@ -14,9 +14,9 @@ import { Top10Row } from './components/Top10Row';
 import { BookCard } from './components/BookCard';
 import { BookDetailPage } from './components/BookDetailPage';
 import { UserProfilePage } from './components/UserProfilePage';
+import { CheckoutPage } from './components/CheckoutPage';
 import { SampleReaderModal } from './components/SampleReaderModal';
 import { CartDrawer } from './components/CartDrawer';
-import { MpesaCheckoutModal } from './components/MpesaCheckoutModal';
 import { WishlistModal } from './components/WishlistModal';
 import { OrdersModal } from './components/OrdersModal';
 import { 
@@ -25,8 +25,14 @@ import {
   Smartphone, 
   Zap, 
   ArrowRight,
-  ShoppingCart
+  ShoppingCart,
+  ChevronLeft,
+  ChevronRight,
+  RotateCcw,
+  Home
 } from 'lucide-react';
+
+const ITEMS_PER_PAGE = 12;
 
 const BookstoreContent: React.FC = () => {
   const { 
@@ -40,12 +46,17 @@ const BookstoreContent: React.FC = () => {
     minRating, 
     sortBy,
     setSelectedCategory,
+    setSelectedSubcategory,
+    setSearchQuery,
     setOnlyDiscounts,
+    resetFilters,
     selectedBook,
     setSelectedBook,
+    setReadingBook,
     cart,
     cartTotalKes,
     formatPrice,
+    isCheckoutOpen,
     setIsCheckoutOpen,
     setIsCartOpen,
     toastMessage
@@ -54,6 +65,9 @@ const BookstoreContent: React.FC = () => {
   const [currentView, setCurrentView] = useState<'catalog' | 'profile'>('catalog');
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
   const [isOrdersModalOpen, setIsOrdersModalOpen] = useState(false);
+
+  // Pagination for catalog search and filters
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Check if user has active filters that should display search grid rather than homepage carousels
   const isFiltering = 
@@ -65,7 +79,32 @@ const BookstoreContent: React.FC = () => {
     minRating > 0 || 
     sortBy !== 'featured';
 
-  // Row partitions for Netflix layout
+  // Reset pagination to page 1 whenever search or filter params change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    searchQuery, 
+    selectedCategory, 
+    selectedSubcategory, 
+    onlyDiscounts, 
+    formatFilter, 
+    minRating, 
+    sortBy
+  ]);
+
+  // Paginated books for grid view
+  const totalPages = Math.ceil(filteredBooks.length / ITEMS_PER_PAGE) || 1;
+  const paginatedBooks = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredBooks.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredBooks, currentPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    document.getElementById('catalog-grid')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Row partitions for Netflix layout (Miller's Law 5-9 items per chunk)
   const top10Books = books.filter((b) => b.rank && b.rank <= 10).sort((a, b) => (a.rank || 0) - (b.rank || 0));
   const achiengPicks = books.filter((b) => b.id === 'mpesa-revolution' || b.id === 'silicon-horizons' || b.id === 'liquid-glass-design' || b.id === 'sons-of-the-savannah');
   const fictionBooks = books.filter((b) => b.category === 'Fiction');
@@ -79,12 +118,14 @@ const BookstoreContent: React.FC = () => {
 
   const handleOpenProfile = () => {
     setSelectedBook(null);
+    setIsCheckoutOpen(false);
     setCurrentView('profile');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleBackToHome = () => {
     setSelectedBook(null);
+    setIsCheckoutOpen(false);
     setCurrentView('catalog');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -103,31 +144,49 @@ const BookstoreContent: React.FC = () => {
         </div>
       )}
 
-      {/* Dominating Search Navigation Bar */}
+      {/* Dominating Search Navigation Bar (Accessible modern icons & Shopping Cart) */}
       <Navbar 
         onOpenWishlist={() => setIsWishlistModalOpen(true)}
         onOpenOrders={() => setIsOrdersModalOpen(true)}
         onOpenProfile={handleOpenProfile}
       />
 
-      {/* Primary Page Content: Book Detail Page OR Profile Page OR Main Catalog */}
-      {selectedBook ? (
-        /* Dedicated Full-Page Book Detail (Not a popup) */
+      {/* Primary Page Content: Checkout Page OR Book Detail Page OR Profile Page OR Main Catalog */}
+      {isCheckoutOpen ? (
+        /* Dedicated Full-Page Checkout (No Popup Modal!) */
+        <main className="flex-1">
+          <CheckoutPage 
+            onBackToCart={() => {
+              setIsCheckoutOpen(false);
+              setIsCartOpen(true);
+            }}
+            onBackToHome={handleBackToHome}
+            onOpenReader={(bookId) => {
+              const target = books.find((b) => b.id === bookId);
+              if (target) setReadingBook(target);
+              setIsCheckoutOpen(false);
+            }}
+          />
+        </main>
+      ) : selectedBook ? (
+        /* Dedicated Full-Page Book Detail (No Popup Modal!) */
         <main className="flex-1">
           <BookDetailPage />
         </main>
       ) : currentView === 'profile' ? (
-        /* Dedicated Full-Page User Profile (Not a popup) */
+        /* Dedicated Full-Page User Profile (No Popup Modal!) */
         <main className="flex-1">
           <UserProfilePage 
             onBackToHome={handleBackToHome}
-            onOpenCheckout={() => setIsCheckoutOpen(true)}
+            onOpenCheckout={() => {
+              setIsCheckoutOpen(true);
+            }}
           />
         </main>
       ) : (
-        /* Netflix-style Bookstore Catalog */
+        /* Netflix-Style Bookstore Catalog */
         <main className="flex-1 pb-16">
-          {/* Exact Netflix Billboard Spotlight (Hidden when searching or filtering) */}
+          {/* Netflix Billboard Spotlight (Hidden when searching or filtering) */}
           {!isFiltering && <HeroBillboard />}
 
           {/* Categories Bar */}
@@ -135,10 +194,45 @@ const BookstoreContent: React.FC = () => {
             <FilterBar />
           </div>
 
-          {/* View Mode: Filtered Grid vs Netflix Multi-Row Carousels */}
+          {/* View Mode: Filtered Grid with Breadcrumbs & Pagination vs Netflix Multi-Row Carousels */}
           {isFiltering ? (
             <div id="catalog-grid" className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-6">
-              <div className="mb-6 flex items-center justify-between">
+              {/* Breadcrumb Trail for Catalog Filtering */}
+              <nav aria-label="Breadcrumb" className="mb-4 flex items-center gap-2 text-xs font-semibold text-slate-500">
+                <button 
+                  onClick={resetFilters}
+                  className="flex items-center gap-1 hover:text-[#1e90ff] transition-colors cursor-pointer"
+                >
+                  <Home className="w-3.5 h-3.5" />
+                  <span>Home</span>
+                </button>
+                <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                {selectedCategory ? (
+                  <>
+                    <button 
+                      onClick={() => setSelectedSubcategory(null)}
+                      className="hover:text-[#1e90ff] cursor-pointer"
+                    >
+                      {selectedCategory}
+                    </button>
+                    {selectedSubcategory && (
+                      <>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                        <span className="text-[#1e90ff] font-bold">{selectedSubcategory}</span>
+                      </>
+                    )}
+                  </>
+                ) : searchQuery ? (
+                  <span className="text-[#1e90ff] font-bold">Search results for "{searchQuery}"</span>
+                ) : onlyDiscounts ? (
+                  <span className="text-[#1e90ff] font-bold">Special Discount Offers</span>
+                ) : (
+                  <span className="text-[#1e90ff] font-bold">Filtered Catalog</span>
+                )}
+              </nav>
+
+              {/* Header with Title and Clear Button */}
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
                 <div>
                   <h2 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
                     <span>Catalog Results</span>
@@ -147,9 +241,17 @@ const BookstoreContent: React.FC = () => {
                     </span>
                   </h2>
                   <p className="text-xs sm:text-sm text-slate-500 mt-0.5 font-medium">
-                    Showing books matching your search keywords and selected filters
+                    Showing {Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, filteredBooks.length)}–{Math.min(currentPage * ITEMS_PER_PAGE, filteredBooks.length)} of {filteredBooks.length} titles
                   </p>
                 </div>
+
+                <button
+                  onClick={resetFilters}
+                  className="px-3 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-slate-200"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 text-[#1e90ff]" />
+                  <span>Reset Filters</span>
+                </button>
               </div>
 
               {filteredBooks.length === 0 ? (
@@ -161,17 +263,78 @@ const BookstoreContent: React.FC = () => {
                   <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto font-medium">
                     Try clearing some filter criteria, broadening your search query, or resetting the price range.
                   </p>
+                  <button
+                    onClick={resetFilters}
+                    className="mt-2 px-4 py-2 rounded-md bg-[#1e90ff] text-white text-xs font-bold cursor-pointer"
+                  >
+                    Clear All Filters
+                  </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
-                  {filteredBooks.map((book) => (
-                    <BookCard key={book.id} book={book} />
-                  ))}
-                </div>
+                <>
+                  {/* Tightened Card Spacing Grid (Clean Ecommerce Density) */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 sm:gap-3.5">
+                    {paginatedBooks.map((book) => (
+                      <BookCard key={book.id} book={book} />
+                    ))}
+                  </div>
+
+                  {/* Accessible Pagination (Miller's Law Chunking) */}
+                  {totalPages > 1 && (
+                    <div className="mt-10 pt-6 border-t border-slate-200 flex flex-wrap items-center justify-between gap-4">
+                      <div className="text-xs text-slate-500 font-semibold">
+                        Page <strong className="text-slate-900">{currentPage}</strong> of <strong className="text-slate-900">{totalPages}</strong>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        {/* Previous Button */}
+                        <button
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          className="px-3 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold text-slate-700 flex items-center gap-1 cursor-pointer transition-colors shadow-xs"
+                          aria-label="Previous page"
+                        >
+                          <ChevronLeft className="w-3.5 h-3.5" />
+                          <span>Previous</span>
+                        </button>
+
+                        {/* Page Numbers */}
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                          const isActive = page === currentPage;
+                          return (
+                            <button
+                              key={page}
+                              onClick={() => handlePageChange(page)}
+                              aria-current={isActive ? 'page' : undefined}
+                              className={`w-8 h-8 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                                isActive
+                                  ? 'bg-[#1e90ff] text-white shadow-sm'
+                                  : 'bg-white hover:bg-slate-100 border border-slate-200 text-slate-700'
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          );
+                        })}
+
+                        {/* Next Button */}
+                        <button
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                          className="px-3 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold text-slate-700 flex items-center gap-1 cursor-pointer transition-colors shadow-xs"
+                          aria-label="Next page"
+                        >
+                          <span>Next</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           ) : (
-            /* Netflix Multi-Row Layout */
+            /* Netflix Multi-Row Layout with Tightened Card Spacing */
             <div className="space-y-6 pt-2">
               {/* Row 1: Netflix Top 10 in Books Today */}
               <div id="top10-section">
@@ -236,8 +399,8 @@ const BookstoreContent: React.FC = () => {
         </main>
       )}
 
-      {/* Floating High-Accessibility Quick Purchase Bar (Visible when Cart has items) */}
-      {totalCartCount > 0 && (
+      {/* Floating High-Accessibility Quick Purchase Bar (Visible when Cart has items, Not on checkout) */}
+      {totalCartCount > 0 && !isCheckoutOpen && (
         <aside 
           aria-label="Floating quick checkout"
           className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 z-40"
@@ -253,7 +416,10 @@ const BookstoreContent: React.FC = () => {
             </button>
 
             <button
-              onClick={() => setIsCheckoutOpen(true)}
+              onClick={() => {
+                setSelectedBook(null);
+                setIsCheckoutOpen(true);
+              }}
               aria-label={`Instant M-Pesa Checkout for ${formatPrice(cartTotalKes)}`}
               className="px-4 py-2 rounded-md bg-[#00a859] hover:bg-[#00924d] text-white text-xs sm:text-sm font-black flex items-center gap-2 shadow-lg shadow-[#00a859]/30 transition-transform active:scale-95 cursor-pointer"
             >
@@ -372,7 +538,6 @@ const BookstoreContent: React.FC = () => {
       {/* Interactive Drawers and Reader Modals */}
       <SampleReaderModal />
       <CartDrawer />
-      <MpesaCheckoutModal />
       <WishlistModal 
         isOpen={isWishlistModalOpen} 
         onClose={() => setIsWishlistModalOpen(false)} 

@@ -271,29 +271,36 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </button>
 
-          {/* Cart & Quick Checkout with Safaricom Green */}
-          {cartItemsCount > 0 ? (
+          {/* Dedicated Shopping Cart Button (Always with ShoppingCart Icon) */}
+          <button
+            onClick={() => setIsCartOpen(true)}
+            aria-label={`Shopping cart with ${cartItemsCount} items`}
+            className="relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-slate-100 hover:bg-[#1e90ff] text-slate-700 hover:text-white border border-slate-200 hover:border-[#1e90ff] transition-all cursor-pointer group"
+            title="Shopping Cart"
+          >
+            <div className="relative flex items-center justify-center">
+              <ShoppingCart className="w-4 h-4 transition-transform group-hover:scale-105" />
+              {cartItemsCount > 0 && (
+                <span className="absolute -top-2 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#1e90ff] group-hover:bg-white group-hover:text-[#1e90ff] text-white text-[10px] font-black flex items-center justify-center shadow-xs">
+                  {cartItemsCount}
+                </span>
+              )}
+            </div>
+            <span className="hidden md:inline text-xs font-bold pl-1">
+              Cart
+            </span>
+          </button>
+
+          {/* Quick Checkout Button when Cart has items */}
+          {cartItemsCount > 0 && (
             <button
               onClick={() => setIsCheckoutOpen(true)}
-              aria-label={`Checkout ${cartItemsCount} items for ${formatPrice(cartTotalKes)} via M-Pesa`}
-              className="px-3 py-1.5 rounded-md bg-[#00a859] hover:bg-[#00924d] text-white font-extrabold text-xs flex items-center gap-1.5 shadow-sm transition-transform active:scale-95 cursor-pointer"
-              title="Instant M-Pesa Checkout"
+              aria-label={`Proceed to Checkout for ${formatPrice(cartTotalKes)} via M-Pesa`}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#00a859] hover:bg-[#00924d] text-white font-extrabold text-xs shadow-xs transition-transform active:scale-95 cursor-pointer"
+              title="Proceed to M-Pesa Checkout"
             >
               <Zap className="w-3.5 h-3.5 fill-current" />
-              <span className="hidden sm:inline">Checkout</span>
-              <span>{formatPrice(cartTotalKes)}</span>
-              <span className="w-4 h-4 rounded-xs bg-white text-black font-black text-[10px] flex items-center justify-center ml-0.5">
-                {cartItemsCount}
-              </span>
-            </button>
-          ) : (
-            <button
-              onClick={() => setIsCartOpen(true)}
-              aria-label="View shopping cart"
-              className="relative p-2 rounded-md bg-slate-100 hover:bg-[#1e90ff] hover:text-white text-slate-700 transition-all cursor-pointer border border-slate-200"
-              title="Cart is empty"
-            >
-              <ShoppingCart className="w-4 h-4" />
+              <span>Checkout</span>
             </button>
           )}
 
